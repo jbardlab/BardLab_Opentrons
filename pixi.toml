@@ -1,0 +1,19 @@
+[project]
+authors = ["Jared Bard <jabard89@gmail.com>"]
+channels = ["conda-forge", "bioconda"]
+description = "Add a short description here"
+name = "BardLab_Opentrons"
+platforms = ["osx-64","linux-64"]
+version = "0.1.0"
+license = "MIT"
+
+[tasks]
+#postinstall = "python -m pip install 'opentrons-hardware @ git+https://github.com/Opentrons/opentrons@fc8f7113c682cd6ce48273cf7c47a242b9272cfc#subdirectory=hardware'"
+
+[dependencies]
+python = ">=3.10, <3.11"
+pip = "*"
+
+[pypi-dependencies]
+opentrons = ">=8.2.0"
+opentrons-hardware = { git = "https://github.com/Opentrons/opentrons", subdirectory = "hardware", rev = "fc8f7113c682cd6ce48273cf7c47a242b9272cfc"}

@@ -6,14 +6,14 @@
     wash(plate, columns, empty_space, wash_vol, wash_reservoir, pipette, tip_rack)
 
 To simulate:
-pixi run opentrons_simulate -L ./labware protocols/BombBio_Trizol_RNA_reuse_noShake_v1.py
+pixi run opentrons_simulate -L ./labware protocols/BombBio_Trizol_RNA_reuse_noShake_v2.py
 '''
 
 from opentrons import protocol_api
 from opentrons import types
 import math, re
 
-metadata = {'protocolName': 'BombBio-trizol-rna-reuse-noShake-v1','author': 'Jared Bard','source': 'Protocol Library',}
+metadata = {'protocolName': 'BombBio-trizol-rna-reuse-noShake-v2','author': 'Jared Bard','source': 'Protocol Library',}
 requirements = {"robotType": "Flex","apiLevel": "2.21",}
 
 def add_parameters(parameters):

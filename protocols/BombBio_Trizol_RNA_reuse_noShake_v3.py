@@ -157,10 +157,10 @@ def run(protocol: protocol_api.ProtocolContext):
         
     # =============================== Define Labware ===============================
     #RES96_TYPE        = "vwr_96_wellplate_2500ul"
-    RES96_TYPE       = "nest_96_wellplate_2ml_deep"
+    RES96_TYPE       = "nest_96_wellplate_2ml_deep_custom"
     RES1_TYPE         = "nest_1_reservoir_290ml"
-    PLATE_TYPE      =   "nest_96_wellplate_2ml_deep"
-    REAGENT_PLATE_TYPE = "nest_96_wellplate_2ml_deep"
+    PLATE_TYPE      =   "nest_96_wellplate_2ml_deep_custom"
+    REAGENT_PLATE_TYPE = "nest_96_wellplate_2ml_deep_custom"
     ELUTION_PLATE_TYPE = "opentrons_96_wellplate_200ul_pcr_full_skirt"
 
     SamplePlate        = protocol.load_labware(RES96_TYPE, protocol_api.OFF_DECK, 'Sample Plate')

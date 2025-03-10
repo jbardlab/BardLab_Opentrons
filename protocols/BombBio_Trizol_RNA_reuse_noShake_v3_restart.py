@@ -379,19 +379,9 @@ def run(protocol: protocol_api.ProtocolContext):
     # start with the sample plate on the magblock
     protocol.move_labware(labware=SamplePlate,new_location=mag_block)
 
-    protocol.comment('--> Wait for beads to settle')
-    if DRYRUN == False:
-        protocol.delay(minutes=SETTLETIME)
-        
-    protocol.comment('--> Remove Sample')
-    for i, X in enumerate(SAMPLECOLS):
-        get_next_tip(p1000, 'tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED)
-        removeSup(SamplePlate, X, INPUTVOLUME, COUNTERS, Deepwell_Z_offset)
-        p1000.drop_tip()
-    
-    protocol.comment('--> Moving plate off magnet')
-    protocol.move_labware(labware=SamplePlate,new_location=protocol_api.OFF_DECK)
-    protocol.pause('Spin plate at 500g for 1 minute to collect residual trizol. meanwhile, empty the trizol waste into the waste reservoir and rinse the waste container')
+    get_next_tip(p1000, 'tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED)
+    removeSup(SamplePlate, 'A1', 900, COUNTERS, Deepwell_Z_offset)
+    p1000.drop_tip()
     protocol.move_labware(labware=SamplePlate,new_location=EMPTYDECKSLOT)
 
     protocol.comment('--> Wash1')

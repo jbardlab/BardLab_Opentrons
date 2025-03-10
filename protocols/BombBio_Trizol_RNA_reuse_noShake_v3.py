@@ -51,17 +51,17 @@ def add_parameters(parameters):
     parameters.add_float(
         display_name="Dnase volume",
         variable_name="DNASEVOL",
-        default=100,minimum=50,maximum=150,
+        default=100,minimum=100,maximum=100,
         description="Volume for Dnase Treatment")
     parameters.add_float(
         display_name="Re-binding buffer volume",
         variable_name="REBINDVOL",
-        default=500,minimum=100,maximum=1000,
+        default=500,minimum=500,maximum=500,
         description="Re-binding buffer volume")
     parameters.add_float(
         display_name="Elution volume",
         variable_name="ELUTEVOL",
-        default=50,minimum=20,maximum=500,
+        default=50,minimum=20,maximum=100,
         description="Volume for final elution")
     
 
@@ -201,12 +201,14 @@ def run(protocol: protocol_api.ProtocolContext):
 
     DnaseBuffer_cols = ReagentPlate.columns_by_name()['1']  # first column
 
-    if N_SAMPLECOLS <= 4:
+    if N_SAMPLECOLS <= 3:
         binding_buffer_column = [3]
-    elif N_SAMPLECOLS > 4 and N_SAMPLECOLS <= 8:
+    elif N_SAMPLECOLS > 3 and N_SAMPLECOLS <= 6:
         binding_buffer_column = [3, 4]
-    elif N_SAMPLECOLS > 8 and N_SAMPLECOLS <= 12:
+    elif N_SAMPLECOLS > 6 and N_SAMPLECOLS <= 9:
         binding_buffer_column = [3, 4, 5]
+    elif N_SAMPLECOLS > 9 and N_SAMPLECOLS <= 12:
+        binding_buffer_column = [3, 4, 5, 6]
     else:
         raise ValueError("Unsupported number of samples")
     
@@ -224,7 +226,7 @@ def run(protocol: protocol_api.ProtocolContext):
     for i in binding_buffer_column:
         load_column_liquid(ReagentPlate, i, BindingBufferLiq, REBIND_Vol_Per_Well)
 
-    load_column_liquid(ReagentPlate, 1, ElutionBufferLiq, ELUTE_Vol_Per_Well)
+    load_column_liquid(ReagentPlate, 12, ElutionBufferLiq, ELUTE_Vol_Per_Well)
     # endregion
     # region ================================ Helper Functions ================================
     global COLUMN_1_LIST

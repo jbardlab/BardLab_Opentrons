@@ -66,7 +66,7 @@ def add_parameters(parameters):
     parameters.add_int(
         display_name="# of binding steps",
         variable_name="NBIND",
-        default=3,minimum=1,maximum=10,
+        default=1,minimum=1,maximum=10,
         description="How many times to perform the initial binding steps")
     
 

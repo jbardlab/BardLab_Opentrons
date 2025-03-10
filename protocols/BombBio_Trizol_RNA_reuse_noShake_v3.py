@@ -63,6 +63,11 @@ def add_parameters(parameters):
         variable_name="ELUTEVOL",
         default=50,minimum=20,maximum=100,
         description="Volume for final elution")
+    parameters.add_int(
+        display_name="# of binding steps",
+        variable_name="NBIND",
+        default=3,minimum=1,maximum=10,
+        description="How many times to perform the initial binding steps")
     
 
 def run(protocol: protocol_api.ProtocolContext):
@@ -76,7 +81,7 @@ def run(protocol: protocol_api.ProtocolContext):
     DNASEVOL           = protocol.params.DNASEVOL
     REBINDVOL           = protocol.params.REBINDVOL
     ELUTEVOL           = protocol.params.ELUTEVOL
-
+    NBIND           = protocol.params.NBIND
     # =================================================================================================
     # ====================================== ADVANCED PARAMETERS ======================================
     # =================================================================================================
@@ -352,8 +357,8 @@ def run(protocol: protocol_api.ProtocolContext):
             p1000.pick_up_tip(tip_rack[X])
             p1000.transfer(WASHVOL, WASHRES[X].bottom(Deepwell_Z_offset), SAMPLEPLATE[X], new_tip = "never",
                            air_gap = 20)
-            p1000.mix(5,WASHVOL*0.75,SAMPLEPLATE[X],rate=3)
-            p1000.blow_out()
+            p1000.mix(10,WASHVOL*0.75,SAMPLEPLATE[X],rate=3)
+            p1000.blow_out(WasteRes['A1'])
             p1000.drop_tip(tip_rack[X])
 
         p1000.flow_rate.aspirate = p1000_flow_rate_aspirate_default
@@ -388,7 +393,22 @@ def run(protocol: protocol_api.ProtocolContext):
         get_next_tip(p1000, 'tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED)
         removeSup(SamplePlate, X, INPUTVOLUME, COUNTERS, Deepwell_Z_offset)
         p1000.drop_tip()
-    
+    if NBIND > 1:
+        for i in range(2,NBIND+1):
+            protocol.move_labware(labware=SamplePlate,new_location=protocol_api.OFF_DECK)
+            protocol.pause('Add more sample, mix for 10 minutes at 1300rpm')
+            protocol.move_labware(labware=SamplePlate,new_location=mag_block)
+
+            protocol.comment('--> Wait for beads to settle')
+            if DRYRUN == False:
+                protocol.delay(minutes=SETTLETIME)
+                
+            protocol.comment('--> Remove Sample')
+            for i, X in enumerate(SAMPLECOLS):
+                get_next_tip(p1000, 'tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED)
+                removeSup(SamplePlate, X, INPUTVOLUME, COUNTERS, Deepwell_Z_offset)
+                p1000.drop_tip()
+        
     protocol.comment('--> Moving plate off magnet')
     protocol.move_labware(labware=SamplePlate,new_location=protocol_api.OFF_DECK)
     protocol.pause('Spin plate at 500g for 1 minute to collect residual trizol. meanwhile, empty the trizol waste into the waste reservoir and rinse the waste container')

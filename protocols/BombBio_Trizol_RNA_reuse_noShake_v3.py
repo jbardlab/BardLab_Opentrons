@@ -422,6 +422,8 @@ def run(protocol: protocol_api.ProtocolContext):
     wash_plate(SamplePlate, EMPTYDECKSLOT, SAMPLECOLS, WASH2VOL, Wash2Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
     protocol.comment('--> Wash3')
     wash_plate(SamplePlate, EMPTYDECKSLOT, SAMPLECOLS, WASH2VOL, Wash2Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
+    protocol.comment('--> Wash4')
+    wash_plate(SamplePlate, EMPTYDECKSLOT, SAMPLECOLS, WASH2VOL, Wash2Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
 
 
     protocol.comment('--> Dry Plate')
@@ -509,6 +511,8 @@ def run(protocol: protocol_api.ProtocolContext):
     protocol.comment('--> Wash2')
     wash_plate(SamplePlate, EMPTYDECKSLOT, SAMPLECOLS, WASH2VOL, Wash2Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
     protocol.comment('--> Wash3')
+    wash_plate(SamplePlate, EMPTYDECKSLOT, SAMPLECOLS, WASH2VOL, Wash2Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
+    protocol.comment('--> Wash4')
     wash_plate(SamplePlate, EMPTYDECKSLOT, SAMPLECOLS, WASH2VOL, Wash2Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
     
     protocol.comment('--> Disposing of tips')

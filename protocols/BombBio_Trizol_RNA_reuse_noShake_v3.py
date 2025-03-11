@@ -358,7 +358,9 @@ def run(protocol: protocol_api.ProtocolContext):
             p1000.transfer(WASHVOL, WASHRES[X].bottom(Deepwell_Z_offset), SAMPLEPLATE[X], new_tip = "never",
                            air_gap = 20)
             p1000.mix(10,WASHVOL*0.75,SAMPLEPLATE[X],rate=3)
-            p1000.blow_out(WasteRes['A1'])
+            p1000.move_to(SamplePlate[X].top(z=2))
+            protocol.delay(minutes=0.05)
+            p1000.blow_out()
             p1000.drop_tip(tip_rack[X])
 
         p1000.flow_rate.aspirate = p1000_flow_rate_aspirate_default
@@ -391,7 +393,7 @@ def run(protocol: protocol_api.ProtocolContext):
     protocol.comment('--> Remove Sample')
     for i, X in enumerate(SAMPLECOLS):
         get_next_tip(p1000, 'tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED)
-        removeSup(SamplePlate, X, INPUTVOLUME, COUNTERS, Deepwell_Z_offset)
+        removeSup(SamplePlate, X, INPUTVOLUME+25, COUNTERS, Deepwell_Z_offset)
         p1000.drop_tip()
     if NBIND > 1:
         for i in range(2,NBIND+1):
@@ -406,7 +408,7 @@ def run(protocol: protocol_api.ProtocolContext):
             protocol.comment('--> Remove Sample')
             for i, X in enumerate(SAMPLECOLS):
                 get_next_tip(p1000, 'tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED)
-                removeSup(SamplePlate, X, INPUTVOLUME, COUNTERS, Deepwell_Z_offset)
+                removeSup(SamplePlate, X, INPUTVOLUME+25, COUNTERS, Deepwell_Z_offset)
                 p1000.drop_tip()
         
     protocol.comment('--> Moving plate off magnet')
@@ -494,12 +496,12 @@ def run(protocol: protocol_api.ProtocolContext):
     protocol.comment('--> Remove Sample')
     for i, X in enumerate(SAMPLECOLS):
         get_next_tip(p1000, 'tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED)
-        removeSup(SamplePlate, X, REBINDVOL, COUNTERS, Deepwell_Z_offset)
+        removeSup(SamplePlate, X, REBINDVOL+DNASEVOL+25, COUNTERS, Deepwell_Z_offset)
         p1000.drop_tip()
     
     protocol.comment('--> Moving plate off magnet')
     protocol.move_labware(labware=SamplePlate,new_location=protocol_api.OFF_DECK)
-    protocol.pause('Spin plate at 500g for 1 minute to collect residual trizol. meanwhile, empty the trizol waste into the waste reservoir and rinse the waste container')
+    protocol.pause('Spin plate at 500g for 1 minute to collect residual binding buffer, check levels of waste reservoir')
     protocol.move_labware(labware=SamplePlate,new_location=EMPTYDECKSLOT)
     
     protocol.comment('--> Wash1')

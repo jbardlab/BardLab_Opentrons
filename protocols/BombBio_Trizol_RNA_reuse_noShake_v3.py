@@ -90,7 +90,7 @@ def run(protocol: protocol_api.ProtocolContext):
     SHAKE_RPM           = 1300
     BINDTIME           = 10
     SETTLETIME          = 2
-    DRYTIME          = 5
+    DRYTIME          = 10
     EMPTYDECKSLOT      = 'C2'
 
     TIP_TRASH           = True      # True = Used tips go in Trash, False = Used tips go back into rack

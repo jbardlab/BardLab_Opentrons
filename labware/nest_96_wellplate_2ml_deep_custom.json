@@ -1225,19 +1225,19 @@
         "opentrons_96_deep_well_temp_mod_adapter": {
             "x": 0,
             "y": 0,
-            "z": 63
+            "z": -0.6
         },
         "opentrons_96_well_aluminum_block": {
           "x": 0,
           "y": 0,
-          "z": 63
+          "z": -4.5
         }
     },
     "stackingOffsetWithModule": {
         "magneticBlockV1": {
             "x": 0,
             "y": 0,
-            "z": 76
+            "z": 3
         }
     }
 }

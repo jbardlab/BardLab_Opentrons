@@ -1225,12 +1225,12 @@
         "opentrons_96_deep_well_temp_mod_adapter": {
             "x": 0,
             "y": 0,
-            "z": 76
+            "z": 63
         },
         "opentrons_96_well_aluminum_block": {
           "x": 0,
           "y": 0,
-          "z": 76
+          "z": 63
         }
     },
     "stackingOffsetWithModule": {

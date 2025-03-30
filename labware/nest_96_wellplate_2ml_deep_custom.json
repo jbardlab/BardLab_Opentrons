@@ -1231,6 +1231,11 @@
           "x": 0,
           "y": 0,
           "z": -4.5
+        },
+        "opentrons_96_deep_well_adapter": {
+          "x": 0,
+          "y": 0,
+          "z": -0.6
         }
     },
     "stackingOffsetWithModule": {

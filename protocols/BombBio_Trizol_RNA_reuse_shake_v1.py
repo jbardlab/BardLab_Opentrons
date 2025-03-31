@@ -71,7 +71,7 @@ def add_parameters(parameters):
     parameters.add_int(
         display_name="# of binding steps",
         variable_name="NBIND",
-        default=1,minimum=1,maximum=10,
+        default=5,minimum=1,maximum=10,
         description="How many times to perform the initial binding steps")
     
 
@@ -607,7 +607,6 @@ def run(protocol: protocol_api.ProtocolContext):
     # shuffle labware around
     shaker.deactivate_heater()
     load_shaker(SamplePlate, use_gripper = True)
-    temp_block.set_temperature(4)
     swap_labware(Wash2Res,ElutionPlate,EMPTYOFFDECKSLOT)
     protocol.move_labware(ElutionPlate,temp_adapter, use_gripper = True)
 
@@ -617,3 +616,4 @@ def run(protocol: protocol_api.ProtocolContext):
     elute()
     
     shaker.open_labware_latch()
+    temp_block.set_temperature(10)

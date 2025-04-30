@@ -160,7 +160,7 @@ def run(protocol: protocol_api.ProtocolContext):
         shaker.deactivate_shaker()
         get_next_tip(p1000, 'tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED)
         p1000.transfer(reagent_volume, Reagent[reagent_column], Sample[sample_column], new_tip = "never")
-        p1000.transfer(sample_volume, Sample[reagent_column], Elute[sample_column], new_tip = "never",
+        p1000.transfer(sample_volume, Sample[sample_column], Elute[sample_column], new_tip = "never",
                        mix_after=(5, sample_volume*0.75))
         p1000.drop_tip()
         shaker.set_and_wait_for_shake_speed(RPM)
@@ -173,30 +173,29 @@ def run(protocol: protocol_api.ProtocolContext):
     if USETEMP:
         shaker.set_and_wait_for_temperature(TEMP)
     shaker.open_labware_latch()
-    protocol.pause('Resume at t=0')
+    protocol.pause('Resume at t=4.5min')
     shaker.close_labware_latch()
     shaker.set_and_wait_for_shake_speed(RPM)
-    protocol.delay(seconds = 300 if not DRYRUN else 0.01)
 
     # t = 5
     quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'A1',1000)
-    protocol.delay(seconds = 290 if not DRYRUN else 0.01)
+    protocol.delay(seconds = 240 if not DRYRUN else 0.01)
 
     # t = 10
     quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'A2',1000)
-    protocol.delay(seconds = 290 if not DRYRUN else 0.01)
+    protocol.delay(seconds = 240 if not DRYRUN else 0.01)
 
     # t = 15
     quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'A3',1000)
-    protocol.delay(seconds = 290 if not DRYRUN else 0.01)
+    protocol.delay(seconds = 240 if not DRYRUN else 0.01)
 
     # t = 20
     quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'A4',1000)
-    protocol.delay(seconds = 290 if not DRYRUN else 0.01)
+    protocol.delay(seconds = 240 if not DRYRUN else 0.01)
 
     # t = 25
     quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'A5',1000)
-    protocol.delay(seconds = 290 if not DRYRUN else 0.01)
+    protocol.delay(seconds = 240 if not DRYRUN else 0.01)
 
     # t = 30
     quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'A6',1000)

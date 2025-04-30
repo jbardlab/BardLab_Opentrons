@@ -22,19 +22,25 @@ def add_parameters(parameters):
         default=False,
         description="Whether to perform a dry run or not.")
     parameters.add_bool(
+        display_name="Use Temp",
+        variable_name="USETEMP",
+        default=True,
+        description="Use temperature for heater/shaker")
+    parameters.add_int(
         display_name="Temp",
         variable_name="TEMP",
-        default="25",
+        default=37, minimum = 37, maximum = 95,
         description="Temperature for heater/shaker")
     parameters.add_int(
         display_name="RPM",
         variable_name="RPM",
-        default=1300,
+        default=1300, minimum = 100, maximum = 2500,
         description="Speed of heater/shaker")
     
 def run(protocol: protocol_api.ProtocolContext):
     # region ======================== DOWNLOADED PARAMETERS ========================
     DRYRUN              = protocol.params.DRYRUN
+    USETEMP         = protocol.params.USETEMP
     TEMP             = protocol.params.TEMP
     RPM         = protocol.params.RPM
 
@@ -149,18 +155,6 @@ def run(protocol: protocol_api.ProtocolContext):
         get_next_tip(pipette, tip_type, tip_apiname, active_tiplist, backup_tiplist, tips_used)
         pipette.transfer(volume, source, dest, new_tip = "never", **kwargs)
         pipette.drop_tip()
-    
-    def shake(shaker,speed,time,dryrun,temp = '', wait_temp=True):
-        shaker.close_labware_latch()
-        shaker.set_and_wait_for_shake_speed(speed)
-        if wait_temp and temp:
-            shaker.set_and_wait_for_temperature(temp)
-        elif temp and not wait_temp:
-            shaker.set_target_temperature(temp)
-        else:
-            shaker.deactivate_heater()
-        protocol.delay(minutes=time if not dryrun else 0.05, msg=f'Shake at 1300 rpm for {time} minutes.')
-        shaker.deactivate_shaker()
 
     def quench(Reagent,Sample,Elute,reagent_column,reagent_volume,sample_column,sample_volume):
         shaker.deactivate_shaker()
@@ -176,7 +170,8 @@ def run(protocol: protocol_api.ProtocolContext):
     #region ================================ Protocol Steps ================================
     # SamplePlate starts on the shaker
     temp_block.set_temperature(4 if not DRYRUN else 25)
-    shaker.set_and_wait_for_temperature(TEMP if not DRYRUN else 25)
+    if USETEMP:
+        shaker.set_and_wait_for_temperature(TEMP)
     shaker.open_labware_latch()
     protocol.pause('Resume at t=0')
     shaker.close_labware_latch()
@@ -188,23 +183,23 @@ def run(protocol: protocol_api.ProtocolContext):
     protocol.delay(seconds = 290 if not DRYRUN else 0.01)
 
     # t = 10
-    quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'B1',1000)
+    quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'A2',1000)
     protocol.delay(seconds = 290 if not DRYRUN else 0.01)
 
     # t = 15
-    quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'C1',1000)
+    quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'A3',1000)
     protocol.delay(seconds = 290 if not DRYRUN else 0.01)
 
     # t = 20
-    quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'D1',1000)
+    quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'A4',1000)
     protocol.delay(seconds = 290 if not DRYRUN else 0.01)
 
     # t = 25
-    quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'E1',1000)
+    quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'A5',1000)
     protocol.delay(seconds = 290 if not DRYRUN else 0.01)
 
     # t = 30
-    quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'F1',1000)
+    quench(ReagentPlate,SamplePlate,ElutionPlate,'A1',100,'A6',1000)
     
     shaker.deactivate_shaker()
     shaker.open_labware_latch()

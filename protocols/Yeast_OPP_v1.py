@@ -158,11 +158,11 @@ def run(protocol: protocol_api.ProtocolContext):
 
     def quench(Reagent,Sample,Elute,reagent_column,reagent_volume,sample_column,sample_volume):
         shaker.deactivate_shaker()
-        transfer_tracktips(p1000, reagent_volume, Reagent[reagent_column], Sample[sample_column],
-                            'tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED)
-        transfer_tracktips(p1000, sample_volume, Sample[sample_column], Elute[sample_column],
-                            'tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED,
-                            mix_after=(5, sample_volume*0.75))
+        get_next_tip(p1000, 'tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED)
+        p1000.transfer(reagent_volume, Reagent[reagent_column], Sample[sample_column], new_tip = "never")
+        p1000.transfer(sample_volume, Sample[reagent_column], Elute[sample_column], new_tip = "never",
+                       mix_after=(5, sample_volume*0.75))
+        p1000.drop_tip()
         shaker.set_and_wait_for_shake_speed(RPM)
         
     

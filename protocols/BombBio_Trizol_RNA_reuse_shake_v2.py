@@ -359,6 +359,7 @@ def run(protocol: protocol_api.ProtocolContext):
         protocol.comment('--->Adding '+str((SUPVOL*8)/1000)+'mL to waste (total is '+str(counter_dict['WASTEVOL']/1000)+'mL)')
         if counter_dict['WASTEVOL'] >150000:
             protocol.pause('Please empty the waste')
+            counter_dict['WASTEVOL'] = 0
         p1000.dispense(SUPVOL, WasteRes['A1'].top(z=0))
         protocol.delay(minutes=0.05 if not DRYRUN else 0.01)
         p1000.blow_out()
@@ -537,6 +538,7 @@ def run(protocol: protocol_api.ProtocolContext):
     protocol.comment('--> Moving plate off magnet')
     protocol.move_labware(labware=SamplePlate,new_location=protocol_api.OFF_DECK)
     protocol.pause('Spin plate at 500g for 1 minute to collect residual trizol. meanwhile, empty the trizol waste into the waste reservoir and rinse the waste container')
+    COUNTERS['WASTEVOL'] = 0
     protocol.move_labware(labware=SamplePlate,new_location=temp_adapter)  # using the temp_adapter as the emptydeckslot
 
     protocol.comment('--> Wash1')
@@ -581,7 +583,8 @@ def run(protocol: protocol_api.ProtocolContext):
     
     protocol.comment('--> Moving plate off magnet')
     protocol.move_labware(labware=SamplePlate,new_location=protocol_api.OFF_DECK)
-    protocol.pause('Spin plate at 500g for 1 minute to collect residual binding buffer, check levels of waste reservoir, and refill ethanol plates')
+    protocol.pause('Spin plate at 500g for 1 minute to collect residual binding buffer, empty liquid waste, and refill ethanol plates')
+    COUNTERS['WASTEVOL'] = 0
     protocol.move_labware(labware=SamplePlate,new_location=temp_adapter)
     
     protocol.comment('--> Wash1')

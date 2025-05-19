@@ -8,7 +8,6 @@ version = "0.1.0"
 license = "MIT"
 
 [tasks]
-#postinstall = "python -m pip install 'opentrons-hardware @ git+https://github.com/Opentrons/opentrons@fc8f7113c682cd6ce48273cf7c47a242b9272cfc#subdirectory=hardware'"
 
 [dependencies]
 python = ">=3.10, <3.11"

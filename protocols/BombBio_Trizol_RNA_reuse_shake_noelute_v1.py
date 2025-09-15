@@ -6,14 +6,14 @@
     wash(plate, columns, empty_space, wash_vol, wash_reservoir, pipette, tip_rack)
 
 To simulate:
-pixi run opentrons_simulate -L ./labware protocols/BombBio_Trizol_RNA_reuse_shake_noelute_v1.py
+pixi run opentrons_simulate -L ./labware protocols/BombBio_Trizol_RNA_reuse_shake_noElute_v1.py
 '''
 
 from opentrons import protocol_api
 from opentrons import types
 import math, re
 
-metadata = {'protocolName': 'BombBio_Trizol_RNA_reuse_shake_noelute_v1','author': 'Jared Bard','source': 'Protocol Library',}
+metadata = {'protocolName': 'BombBio_Trizol_RNA_reuse_shake_noElute_v1','author': 'Jared Bard','source': 'Protocol Library',}
 requirements = {"robotType": "Flex","apiLevel": "2.21",}
 
 def add_parameters(parameters):
@@ -94,8 +94,6 @@ def run(protocol: protocol_api.ProtocolContext):
     #---------------------------
     DNASETIME          = 15
     SHAKE_RPM           = 1300
-    WASH_SHAKE_RPM           = 1300
-    WASH_SHAKE_TIME           = 10/60
     BINDTIME           = 10
     SETTLETIME          = 2
     DRYTIME          = 10
@@ -160,12 +158,12 @@ def run(protocol: protocol_api.ProtocolContext):
     TRASH = protocol.load_waste_chute()
     EMPTYDECKSLOT      = '' # no empty deck slots
     EMPTYOFFDECKSLOT = 'A4' # for swapping labware
-    TIP1000_DECKSLOT = 'A2'
-    TIP1000_DECKSLOT2 = 'A3'
-    TIP1000_DECKSLOT3 = 'B4'
-    TIP50_DECKSLOT = 'C4'
+    TIP50_DECKSLOT = '' # none to start
+    TIP50_OFFDECKSLOT = 'C4'
+    TIP1000_DECKSLOT = 'B3'
+    TIP1000_OFFDECKSLOT = 'B4'
 
-    tip1000_reuse = protocol.load_labware(TIP1000_APINAME, 'B3')
+    tip1000_reuse = protocol.load_labware(TIP1000_APINAME, 'A3')
     # endregion
     # region ================================ Helper Functions ================================
     global COLUMN_1_LIST
@@ -197,10 +195,9 @@ def run(protocol: protocol_api.ProtocolContext):
         backup_tipracks[tip_type].append(tip_rack)
     
     load_active_tips(ACTIVE_TIPRACKS, TIPS_USED, 'tip1000', protocol.load_labware(TIP1000_APINAME,TIP1000_DECKSLOT,TIP1000_APINAME))
-    load_active_tips(ACTIVE_TIPRACKS, TIPS_USED, 'tip50', protocol.load_labware(TIP50_APINAME,TIP50_DECKSLOT,TIP50_APINAME))
+    load_active_tips(ACTIVE_TIPRACKS, TIPS_USED, 'tip50', protocol.load_labware(TIP50_APINAME,TIP50_OFFDECKSLOT,TIP50_APINAME))
     # load the backup slot
-    load_backup_tips(BACKUP_TIPRACKS,'tip1000',protocol.load_labware(TIP1000_APINAME,TIP1000_DECKSLOT2,TIP1000_APINAME))
-    load_backup_tips(BACKUP_TIPRACKS,'tip1000',protocol.load_labware(TIP1000_APINAME,TIP1000_DECKSLOT3,TIP1000_APINAME))
+    load_backup_tips(BACKUP_TIPRACKS,'tip1000',protocol.load_labware(TIP1000_APINAME,TIP1000_OFFDECKSLOT,TIP1000_APINAME))
         
     def load_new_tips(tip_type, tip_apiname, active_tipracks, backup_tipracks, tips_used, EMPTYOFFDECKSLOT):
         """
@@ -210,7 +207,7 @@ def run(protocol: protocol_api.ProtocolContext):
         old_box = active_tipracks[tip_type]
         old_box_location = old_box.parent
         if backup_tipracks[tip_type]: # if there are backup tips on deck
-            new_box = backup_tipracks[tip_type].pop(0) # get the next box from the backup
+            new_box = backup_tipracks[tip_type].pop() # get the next box from the backup
             if EMPTYOFFDECKSLOT:
                 swap_labware(old_box,new_box,EMPTYOFFDECKSLOT,gripper = True)
             else:
@@ -221,7 +218,7 @@ def run(protocol: protocol_api.ProtocolContext):
             protocol.move_labware(new_box,old_box_location)
         load_active_tips(active_tipracks, tips_used, tip_type, new_box)
 
-    def get_next_tip(pipette, tip_type, tip_apiname, active_tipracks, backup_tipracks, tips_used, reuse = False):
+    def get_next_tip(pipette, tip_type, tip_apiname, active_tipracks, backup_tipracks, tips_used):
         """
         Get the next tip from the tip rack.
         If the tips are empty, calls load_new_tips
@@ -230,8 +227,7 @@ def run(protocol: protocol_api.ProtocolContext):
             load_new_tips(tip_type, tip_apiname, active_tipracks, backup_tipracks, tips_used, EMPTYOFFDECKSLOT)
         tip_col = f"A{tips_used[tip_type] + 1}"
         pipette.pick_up_tip(active_tipracks[tip_type][tip_col])
-        if not reuse: tips_used[tip_type] += 1
-        return(active_tipracks[tip_type][tip_col])
+        tips_used[tip_type] += 1
 
     # endregion
     # =============================== Define Labware ===============================
@@ -243,10 +239,10 @@ def run(protocol: protocol_api.ProtocolContext):
     ELUTION_PLATE_TYPE = "opentrons_96_wellplate_200ul_pcr_full_skirt"
 
     SamplePlate        = shake_adapter.load_labware(RES96_TYPE, 'Sample Plate')
-    Wash1Res        = protocol.load_labware(RES1_TYPE, 'B2', '90% EtOH')
+    Wash1Res        = protocol.load_labware(RES96_TYPE, 'A2', '90% EtOH 1mL')
+    Wash2Res       = protocol.load_labware(RES96_TYPE, 'B2', '90% reservoir 1.6mL')
     WasteRes       = protocol.load_labware(RES1_TYPE, 'C2', 'Waste Reservoir')
     ReagentPlate        = protocol.load_labware(REAGENT_PLATE_TYPE, 'C3', 'reagent reservoir')
-    # skip the elution plate
     #ElutionPlate    = protocol.load_labware('opentrons_96_wellplate_200ul_pcr_full_skirt','D4','Elution Plate')
     
     # ======== DEFINING LIQUIDS =======
@@ -258,7 +254,8 @@ def run(protocol: protocol_api.ProtocolContext):
 
     # ======== ESTIMATING LIQUIDS =======
     Sample_Volume = INPUTVOLUME
-    WASH1_Vol_Per_Well = (N_SAMPLECOLS * 900 + N_SAMPLECOLS * 750 * 2) * 8 + 25000
+    WASH1_Vol_Per_Well = 1000
+    WASH2_Vol_Per_Well = 1600
     DNASE_Vol_Per_Well = DNASEVOL * N_SAMPLECOLS + 20
     REBIND_Vol_Per_Well = 2000
     ELUTE_Vol_Per_Well = ELUTEVOL * N_SAMPLECOLS + 50
@@ -273,6 +270,9 @@ def run(protocol: protocol_api.ProtocolContext):
             labware.wells_by_name()[well].load_liquid(liquid=liq, volume=vol)
     
     sample_column_keys = [str(i) for i in range(1, N_SAMPLECOLS+1)]
+    Sample_cols = {key: SamplePlate.columns_by_name()[key] for key in sample_column_keys}
+    Wash1EtOH_cols = {key: Wash1Res.columns_by_name()[key] for key in sample_column_keys}
+    Wash2EtOH_cols = {key: Wash2Res.columns_by_name()[key] for key in sample_column_keys}
 
     DnaseBuffer_cols = ReagentPlate.columns_by_name()['1']  # first column
 
@@ -293,10 +293,10 @@ def run(protocol: protocol_api.ProtocolContext):
     # Grouped load_column_liquid commands
     for i in range(1, N_SAMPLECOLS+1):
         load_column_liquid(SamplePlate, i, SampleLiq, Sample_Volume)
+        load_column_liquid(Wash1Res, i, EtOHLiq, WASH1_Vol_Per_Well)
+        load_column_liquid(Wash2Res, i, EtOHLiq, WASH2_Vol_Per_Well)
 
     load_column_liquid(ReagentPlate, 1, DnaseLiq, DNASE_Vol_Per_Well)
-    
-    Wash1Res.wells_by_name()['A1'].load_liquid(liquid=EtOHLiq, volume=WASH1_Vol_Per_Well)
 
     for i in binding_buffer_column:
         load_column_liquid(ReagentPlate, i, BindingBufferLiq, REBIND_Vol_Per_Well)
@@ -338,6 +338,74 @@ def run(protocol: protocol_api.ProtocolContext):
         pipette.transfer(volume, source, dest, new_tip = "never", **kwargs)
         pipette.drop_tip()
 
+    def removeSup(PLATE, COL, SUPVOL, counter_dict, Deepwell_Z_offset = 0):
+        """
+        Remove supernatant from the plate using the p1000
+        no tip tracking
+        """
+        if SUPVOL < 100:
+            SUPVOL = 100
+        p1000.flow_rate.aspirate = 100
+
+        p1000.move_to(PLATE[COL].bottom(z=Deepwell_Z_offset+2))
+        p1000.aspirate(SUPVOL-100)
+        protocol.delay(minutes=0.1 if not DRYRUN else 0.01)
+        p1000.move_to(PLATE[COL].bottom(z=Deepwell_Z_offset+1))
+        p1000.aspirate(100)
+        p1000.default_speed = 200
+        p1000.move_to(PLATE[COL].top(z=2))
+        #======L Waste Volume Check======
+        counter_dict['WASTEVOL'] += (SUPVOL*8)
+        protocol.comment('--->Adding '+str((SUPVOL*8)/1000)+'mL to waste (total is '+str(counter_dict['WASTEVOL']/1000)+'mL)')
+        if counter_dict['WASTEVOL'] >150000:
+            protocol.pause('Please empty the waste')
+            counter_dict['WASTEVOL'] = 0
+        p1000.dispense(SUPVOL, WasteRes['A1'].top(z=0))
+        protocol.delay(minutes=0.05 if not DRYRUN else 0.01)
+        p1000.blow_out()
+
+        p1000.flow_rate.aspirate = p1000_flow_rate_aspirate_default
+        p1000.flow_rate.dispense = p1000_flow_rate_dispense_default
+        p1000.flow_rate.blow_out = p1000_flow_rate_blow_out_default
+    
+    def wash_plate(SAMPLEPLATE, SAMPLEPOS, COLS, WASHVOL, WASHRES, SETTLETIME, tip_rack, counter_dict, Deepwell_Z_offset, nmix = 5):
+        """
+        Wash the plate with EtOH.
+        Should change this to start with an empty plate on the magblock
+        """
+
+        protocol.comment('--> Adding Wash')
+        for i, X in enumerate(COLS):
+            p1000.flow_rate.aspirate = 400
+            p1000.flow_rate.dispense = 400
+
+            p1000.pick_up_tip(tip_rack[X])
+            p1000.transfer(WASHVOL, WASHRES[X].bottom(Deepwell_Z_offset), SAMPLEPLATE[X], new_tip = "never",
+                           air_gap = 20)
+            if not DRYRUN: p1000.mix(nmix,WASHVOL*0.75,SAMPLEPLATE[X])
+            p1000.move_to(SamplePlate[X].top(z=2))
+            protocol.delay(minutes=0.05 if not DRYRUN else 0.01)
+            p1000.blow_out()
+            p1000.drop_tip(tip_rack[X])
+
+        p1000.flow_rate.aspirate = p1000_flow_rate_aspirate_default
+        p1000.flow_rate.dispense = p1000_flow_rate_dispense_default
+        p1000.flow_rate.blow_out = p1000_flow_rate_blow_out_default
+        protocol.comment('--> Moving Sample Plate to MagBlock')
+        protocol.move_labware(labware=SAMPLEPLATE,new_location=mag_block,use_gripper=True)
+
+        protocol.comment('--> Wait for beads to settle')
+        protocol.delay(minutes=SETTLETIME if not DRYRUN else 0.01)
+            
+        protocol.comment('--> Remove Supernatant')
+        for i, X in enumerate(COLS):
+            p1000.pick_up_tip(tip_rack[X])
+            removeSup(SAMPLEPLATE, X, WASHVOL+25, counter_dict, Deepwell_Z_offset)
+            p1000.drop_tip(tip_rack[X])
+        
+        protocol.comment('--> Moving plate off magnet')
+        protocol.move_labware(labware = SAMPLEPLATE, new_location = SAMPLEPOS, use_gripper = True)
+
     def load_shaker(plate, use_gripper = True):
         if use_gripper:
             protocol.move_labware(labware=plate,new_location=shake_adapter, use_gripper = use_gripper)
@@ -369,74 +437,6 @@ def run(protocol: protocol_api.ProtocolContext):
         protocol.delay(minutes=time if not dryrun else 0.05, msg=f'Shake at 1300 rpm for {time} minutes.')
         shaker.deactivate_shaker()
 
-
-    def removeSup(PLATE, COL, SUPVOL, counter_dict, Deepwell_Z_offset = 0):
-        """
-        Remove supernatant from the plate using the p1000
-        no tip tracking
-        """
-        if SUPVOL < 100:
-            SUPVOL = 100
-        p1000.flow_rate.aspirate = 100
-
-        p1000.move_to(PLATE[COL].bottom(z=Deepwell_Z_offset+2))
-        p1000.aspirate(SUPVOL-100)
-        protocol.delay(minutes=0.1 if not DRYRUN else 0.01)
-        p1000.move_to(PLATE[COL].bottom(z=Deepwell_Z_offset+1))
-        p1000.aspirate(100)
-        p1000.default_speed = 200
-        p1000.move_to(PLATE[COL].top(z=2))
-        #======L Waste Volume Check======
-        counter_dict['WASTEVOL'] += (SUPVOL*8)
-        protocol.comment('--->Adding '+str((SUPVOL*8)/1000)+'mL to waste (total is '+str(counter_dict['WASTEVOL']/1000)+'mL)')
-        if counter_dict['WASTEVOL'] > 200000:
-            protocol.pause('Please empty the waste')
-            counter_dict['WASTEVOL'] = 0
-        p1000.dispense(SUPVOL, WasteRes['A1'].top(z=0))
-        protocol.delay(minutes=0.05 if not DRYRUN else 0.01)
-        p1000.blow_out()
-
-        p1000.flow_rate.aspirate = p1000_flow_rate_aspirate_default
-        p1000.flow_rate.dispense = p1000_flow_rate_dispense_default
-        p1000.flow_rate.blow_out = p1000_flow_rate_blow_out_default
-    
-    def wash_plate(SAMPLEPLATE, SAMPLEPOS, COLS, WASHVOL, WASHRES, SETTLETIME, tip_rack, counter_dict, Deepwell_Z_offset, nmix = 5):
-        """
-        Wash the plate with EtOH.
-        Should change this to start with an empty plate on the magblock
-        """
-
-        protocol.comment('--> Adding Wash and shaking')
-        p1000.flow_rate.aspirate = 400
-        p1000.flow_rate.dispense = 400
-        temp_tips = get_next_tip(p1000, 'tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED, reuse = True)
-
-        for i, X in enumerate(COLS):
-            p1000.transfer(WASHVOL, WASHRES['A1'].bottom(Deepwell_Z_offset), SAMPLEPLATE[X], new_tip = "never",
-                           air_gap = 20)
-        p1000.drop_tip(temp_tips)
-        load_shaker(SAMPLEPLATE, use_gripper = True)
-        shake(shaker,WASH_SHAKE_RPM,WASH_SHAKE_TIME,DRYRUN)
-        unload_shaker(SAMPLEPLATE, mag_block, use_gripper = True)
-        protocol.comment('--> Moving Sample Plate to MagBlock')
-
-        p1000.flow_rate.aspirate = p1000_flow_rate_aspirate_default
-        p1000.flow_rate.dispense = p1000_flow_rate_dispense_default
-        p1000.flow_rate.blow_out = p1000_flow_rate_blow_out_default
-
-        protocol.comment('--> Wait for beads to settle')
-        protocol.delay(minutes=SETTLETIME if not DRYRUN else 0.01)
-            
-        protocol.comment('--> Remove Supernatant')
-        for i, X in enumerate(COLS):
-            p1000.pick_up_tip(tip_rack[X])
-            removeSup(SAMPLEPLATE, X, WASHVOL+25, counter_dict, Deepwell_Z_offset)
-            p1000.drop_tip(tip_rack[X])
-        
-        protocol.comment('--> Moving plate off magnet')
-        protocol.move_labware(labware = SAMPLEPLATE, new_location = SAMPLEPOS, use_gripper = True)
-
-    
     def remove_trizol():
         for i, X in enumerate(SAMPLECOLS):
             get_next_tip(p1000, 'tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED)
@@ -458,7 +458,7 @@ def run(protocol: protocol_api.ProtocolContext):
                     p1000.drop_tip()
     
     def rebind():
-        temp_tip = get_next_tip(p1000, 'tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED, reuse = True)
+        get_next_tip(p1000, 'tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED)
         p1000.flow_rate.aspirate = 100
         for i, X in enumerate(BindingBuffer_cols.keys()):
             source_well = ReagentPlate[f"A{X}"]
@@ -483,7 +483,7 @@ def run(protocol: protocol_api.ProtocolContext):
                 p1000.move_to(SamplePlate[Y].top(z=2))
                 p1000.move_to(SamplePlate[Y].top(z=5))
                 p1000.air_gap(20) # to prevent leaking while moving
-        p1000.drop_tip(temp_tip)
+        p1000.drop_tip()
 
         p1000.flow_rate.aspirate = p1000_flow_rate_aspirate_default
         p1000.flow_rate.dispense = p1000_flow_rate_dispense_default
@@ -498,6 +498,20 @@ def run(protocol: protocol_api.ProtocolContext):
         protocol.delay(minutes=DRYTIME if not DRYRUN else 0.05)
         temp_block.set_temperature(25)
     
+    def elute():
+        for i, X in enumerate(SAMPLECOLS):
+            transfer_tracktips(p50, ELUTEVOL, ElutionBuffer_cols, SamplePlate[X],
+            'tip50', TIP50_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED,
+            mix_after=(10, ELUTEVOL*0.75) if not DRYRUN else (1,1))
+        shake(shaker,300,5,DRYRUN)
+        unload_shaker(SamplePlate, mag_block, use_gripper = True)
+        protocol.comment('--> Wait for beads to settle')
+        protocol.delay(minutes=SETTLETIME if not DRYRUN else 0.05)
+        protocol.comment('--> Elute')
+        for i, X in enumerate(SAMPLECOLS):
+            transfer_tracktips(p50, ELUTEVOL, SamplePlate[X], ElutionPlate[X],
+                            'tip50', TIP50_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED)
+    
     def add_elution_buffer():
         for i, X in enumerate(SAMPLECOLS):
             transfer_tracktips(p50, ELUTEVOL, ElutionBuffer_cols, SamplePlate[X],
@@ -505,7 +519,7 @@ def run(protocol: protocol_api.ProtocolContext):
             mix_after=(10, ELUTEVOL*0.75) if not DRYRUN else (1,1))
         shake(shaker,300,5,DRYRUN)
         unload_shaker(SamplePlate, temp_adapter, use_gripper = True)
-    
+      
     def reload_tips():
         protocol.comment('--> Reloading tips')
         load_new_tips('tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED, EMPTYOFFDECKSLOT)
@@ -538,16 +552,14 @@ def run(protocol: protocol_api.ProtocolContext):
     protocol.comment('--> Wash1')
     wash_plate(SamplePlate, temp_adapter, SAMPLECOLS, WASH1VOL, Wash1Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
     protocol.comment('--> Wash2')
-    wash_plate(SamplePlate, temp_adapter, SAMPLECOLS, WASH2VOL, Wash1Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
-    if N_SAMPLECOLS >= 10:
-        protocol.pause('please empty the waste container and refill the ethanol if necessary')
-        COUNTERS['WASTEVOL'] = 0
+    wash_plate(SamplePlate, temp_adapter, SAMPLECOLS, WASH2VOL, Wash2Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
     protocol.comment('--> Wash3')
-    wash_plate(SamplePlate, temp_adapter, SAMPLECOLS, WASH2VOL, Wash1Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
+    wash_plate(SamplePlate, temp_adapter, SAMPLECOLS, WASH2VOL, Wash2Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
 
 
     protocol.comment('--> Dry Plate')
     # plate is already on temp_adapter
+    #protocol.move_labware(labware=SamplePlate,new_location=temp_adapter, use_gripper=True)
     dry_plate()
     load_shaker(SamplePlate, use_gripper = True)
     
@@ -560,18 +572,9 @@ def run(protocol: protocol_api.ProtocolContext):
     shake(shaker,1300,DNASETIME,DRYRUN,wait_temp = True, temp = 37)
     shaker.deactivate_heater()
     
-    # reload tips if necessary
-    if 8 <= N_SAMPLECOLS < 12:
-        protocol.comment('--> Replacing backup p1000 tips')
-        # first remove the empty tip box
-        protocol.move_labware(protocol.deck[TIP1000_DECKSLOT2],protocol_api.OFF_DECK)
-        load_backup_tips(BACKUP_TIPRACKS,'tip1000',protocol.load_labware(TIP1000_APINAME,TIP1000_DECKSLOT2,TIP1000_APINAME))
-    if N_SAMPLECOLS == 12:
-        # remove both p1000 tips
-        protocol.comment('--> Replacing active and backup p1000 tips')
-        load_new_tips('tip1000', TIP1000_APINAME, ACTIVE_TIPRACKS, BACKUP_TIPRACKS, TIPS_USED, EMPTYOFFDECKSLOT)
-        protocol.move_labware(protocol.deck[TIP1000_DECKSLOT2],protocol_api.OFF_DECK)
-        load_backup_tips(BACKUP_TIPRACKS,'tip1000',protocol.load_labware(TIP1000_APINAME,TIP1000_DECKSLOT2,TIP1000_APINAME))
+    # reload tips if samples >= 8:
+    if N_SAMPLECOLS >= 8:
+        reload_tips()
 
     protocol.comment('--> Rebind')
     # use the same tip to distribute binding buffer to each column
@@ -588,19 +591,16 @@ def run(protocol: protocol_api.ProtocolContext):
     
     protocol.comment('--> Moving plate off magnet')
     protocol.move_labware(labware=SamplePlate,new_location=protocol_api.OFF_DECK)
-    protocol.pause('Spin plate at 500g for 1 minute to collect residual binding buffer, empty liquid waste, and refill ethanol')
+    protocol.pause('Spin plate at 500g for 1 minute to collect residual binding buffer, empty liquid waste, and refill ethanol plates')
     COUNTERS['WASTEVOL'] = 0
     protocol.move_labware(labware=SamplePlate,new_location=temp_adapter)
     
     protocol.comment('--> Wash1')
     wash_plate(SamplePlate, temp_adapter, SAMPLECOLS, WASH1VOL, Wash1Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
     protocol.comment('--> Wash2')
-    wash_plate(SamplePlate, temp_adapter, SAMPLECOLS, WASH2VOL, Wash1Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
-    if N_SAMPLECOLS >= 10:
-        protocol.pause('please empty the waste container')
-        COUNTERS['WASTEVOL'] = 0
+    wash_plate(SamplePlate, temp_adapter, SAMPLECOLS, WASH2VOL, Wash2Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
     protocol.comment('--> Wash3')
-    wash_plate(SamplePlate, temp_adapter, SAMPLECOLS, WASH2VOL, Wash1Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
+    wash_plate(SamplePlate, temp_adapter, SAMPLECOLS, WASH2VOL, Wash2Res, 2, tip1000_reuse, COUNTERS, Deepwell_Z_offset)
     
     protocol.comment('--> Disposing of tips')
     for X in SAMPLECOLS:
@@ -613,7 +613,7 @@ def run(protocol: protocol_api.ProtocolContext):
     # shuffle labware around
     shaker.deactivate_heater()
     load_shaker(SamplePlate, use_gripper = True)
-    # skip the elution plate
+    #swap_labware(Wash2Res,ElutionPlate,EMPTYOFFDECKSLOT)
     #protocol.move_labware(ElutionPlate,temp_adapter, use_gripper = True)
 
     protocol.comment('--> Elute')

@@ -620,9 +620,9 @@ def run(protocol: protocol_api.ProtocolContext):
     # load the p50 tips
     swap_labware(tip1000_reuse,ACTIVE_TIPRACKS['tip50'],EMPTYOFFDECKSLOT)
     shaker.open_labware_latch()
-    protocol.pause('Double check that there is no liquid left in the sample wells')
+    protocol.pause('Double check that there is no liquid left in the sample wells. If necessary, place on magnetic block, remove excess liquid and dry on temp block for 5 more minutes. Then return plate to SHAKER.')
     shaker.close_labware_latch()
     add_elution_buffer()
     
     shaker.open_labware_latch()
-    temp_block.set_temperature(10)
+    temp_block.deactivate()
